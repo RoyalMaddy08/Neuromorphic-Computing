@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+n = 5  # Number of elements
+R = 1e3  # Resistance in ohms
+V_ETH = 5  # Threshold voltage in volts
+
+# Currents in mA
+I_1j = np.array([1] * n)  # 1 mA for all j
+I_2j = np.array([0.5] * n)  # 0.5 mA for all j
+
+# Convert currents to amperes
+I_1j = I_1j * 1e-3  # mA to A
+I_2j = I_2j * 1e-3  # mA to A
+
+# Sum the currents
+I_1_total = np.sum(I_1j)
+I_2_total = np.sum(I_2j)
+
+# Convert total currents to voltages
+V_1_total = I_1_total * R
+V_2_total = I_2_total * R
+
+# Comparator outputs
+V_ED1 = 'High' if V_1_total > V_ETH else 'Low'
+V_ED2 = 'High' if V_2_total > V_ETH else 'Low'
+
+# Display the results
+print(f"Summed current for first row (I_1_total): {I_1_total * 1e3} mA")
+print(f"Summed current for second row (I_2_total): {I_2_total * 1e3} mA")
+print(f"Total voltage for first row (V_1_total): {V_1_total} V")
+print(f"Total voltage for second row (V_2_total): {V_2_total} V")
+print(f"Comparator output for first row (V_ED1): {V_ED1}")
+print(f"Comparator output for second row (V_ED2): {V_ED2}")
+
+# Plotting
+labels = ['Row 1', 'Row 2']
+current_values = [I_1_total * 1e3, I_2_total * 1e3]  # in mA
+voltage_values = [V_1_total, V_2_total]  # in V
+comparator_outputs = [V_ED1, V_ED2]
+
+x = np.arange(len(labels))  # the label locations
+width = 0.35  # the width of the bars
+
+fig, ax1 = plt.subplots()
+
+# Plotting the currents
+rects1 = ax1.bar(x - width/2, current_values, width, label='Current (mA)', color='skyblue')
+
+# Adding voltage values
+rects2 = ax1.bar(x + width/2, voltage_values, width, label='Voltage (V)', color='lightgreen')
+
+# Adding labels, title and custom x-axis tick labels, etc.
+ax1.set_xlabel('Row')
+ax1.set_title('Summed Currents and Voltages with Comparator Outputs')
+ax1.set_xticks(x)
+ax1.set_xticklabels(labels)
+ax1.legend()
+
+# Adding comparator outputs as text above the bars
+for i in range(len(labels)):
+    ax1.text(x[i] - width/2, current_values[i] + 1, f'{comparator_outputs[i]}', ha='center', va='bottom')
+    ax1.text(x[i] + width/2, voltage_values[i] + 1, f'{voltage_values[i]:.2f} V', ha='center', va='bottom')
+
+fig.tight_layout()
+
+plt.show()
