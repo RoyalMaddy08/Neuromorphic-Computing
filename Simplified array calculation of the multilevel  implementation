@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+Vu = 1  # Constant voltage
+Gu = 1  # Constant conductance
+
+# Example feature values
+a_x = np.array([6, 1, 4, 4, 8, 4, 6, 3, 5, 8])
+a_xi = np.array([7, 9, 9, 2, 7, 8, 9, 2, 9, 6])
+
+# Voltages proportional to the feature values and their squares
+V_ax = Vu * a_x
+V_ax2 = Vu * a_x**2
+V_aji = Vu * a_xi
+V_aji2 = Vu * a_xi**2
+
+# Conductances proportional to the feature values and their squares
+G_ax = Gu * a_x
+G_ax2 = Gu * a_x**2
+G_aji = Gu * a_xi
+G_aji2 = Gu * a_xi**2
+
+# Calculate squared Euclidean distance using the crossbar array method
+I_ij = -2 * Vu * Gu * a_x * a_xi + Vu * Gu * a_xi**2
+squared_distance = np.sum(Vu * Gu * (a_x**2 - 2 * a_x * a_xi + a_xi**2))
+
+# Plotting the components of the squared Euclidean distance
+plt.figure(figsize=(10, 6))
+plt.bar(range(1, 11), Vu * Gu * (a_x**2 - 2 * a_x * a_xi + a_xi**2), color='blue')
+plt.xlabel('Feature Index')
+plt.ylabel('Squared Distance Component')
+plt.title('Squared Euclidean Distance Components')
+plt.xticks(range(1, 11), [f'Feature {i}' for i in range(1, 11)])
+plt.grid(True)
+plt.text(0.5, 0.9, f'Feature values for input x: {a_x}', transform=plt.gca().transAxes)
+plt.text(0.5, 0.85, f'Feature values for training example x_i: {a_xi}', transform=plt.gca().transAxes)
+plt.text(0.5, 0.8, f'Squared Euclidean Distance: {squared_distance}', transform=plt.gca().transAxes)
+plt.show()
+
+# Print the squared Euclidean distance
+print(f'Squared Euclidean Distance: {squared_distance}')
