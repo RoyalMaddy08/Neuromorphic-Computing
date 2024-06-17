@@ -1,0 +1,35 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Given values
+V_u = 5  # constant voltage
+
+# Voltages for squared distance components (Example for 4 features)
+V_ED = np.array([2, 3, 4, 1])  # in volts
+
+# Threshold voltage for classification
+V_TH = 8  # in volts
+
+# Calculate the sum of squared distance components
+V_sum = np.sum(V_ED)
+
+# Determine the class detection output
+if V_sum < V_TH:
+    V_CD1 = 1  # Class detected
+else:
+    V_CD1 = 0  # Class not detected
+
+# Print the results
+print(f"Sum of Squared Distance Components (V_sum): {V_sum} V")
+print(f"Threshold Voltage (V_TH): {V_TH} V")
+print(f"Class Detection Output (V_CD1): {V_CD1}")
+
+# Plotting the squared distance components
+plt.figure(figsize=(8, 6))
+plt.bar(range(len(V_ED)), V_ED, color='blue')
+plt.xlabel('Feature Index')
+plt.ylabel('Squared Distance Component (Voltage)')
+plt.title('Squared Euclidean Distance Components')
+plt.xticks(range(len(V_ED)), [f'Feature {i+1}' for i in range(len(V_ED))])
+plt.grid(True)
+plt.show()
