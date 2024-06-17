@@ -1,59 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Given values
-Vu = 5  # Constant voltage
-Gu = 0.1  # Constant conductance
+# New feature values for input x and training example x_i to get positive current
+x = np.array([0.5, 0.2, 0.3, 0.4, 0.6, 0.1, 0.3, 0.5, 0.4, 0.2])
+x_i = np.array([0.6, 0.3, 0.4, 0.5, 0.7, 0.2, 0.4, 0.6, 0.5, 0.3])
 
-# Feature values for input x and training example x_i
-a_x = np.array([6, 1, 4, 4, 8, 4, 6, 3, 5, 8])
-a_xi = np.array([7, 9, 9, 2, 7, 8, 9, 2, 9, 6])
+# Constants
+V_u = 1
+G_u = 1
 
-# Number of features
-n = len(a_x)
+# Calculate the individual currents I_ij
+I_ij = V_u * G_u * ((1 - x) * x_i + x * (1 - x_i))
 
-# Calculate the squared Euclidean distance component-wise
-distance_components = (a_x - a_xi)**2
-
-# Total squared Euclidean distance
-squared_distance = np.sum(distance_components)
-
-# Calculate current I_ij based on circuit analysis
-I_ij = -2 * Vu * Gu * a_x * a_xi + Vu * Gu * a_xi**2
-
-# Total current (for comparison, not needed for Euclidean distance calculation)
+# Calculate the total current
 total_current = np.sum(I_ij)
 
-# Display the results
-print(f"Feature values for input x: {a_x}")
-print(f"Feature values for training example x_i: {a_xi}")
-print(f"Squared Euclidean Distance: {squared_distance}")
+# Output the results
+print("Feature values for input x:", x)
+print("Feature values for training example x_i:", x_i)
+print("Individual currents I_ij:", I_ij)
+print("Total current:", total_current)
 
-# Plotting
-labels = [f'Feature {i+1}' for i in range(n)]
+# Plot the individual currents
+plt.figure(figsize=(10, 6))
+plt.bar(range(len(I_ij)), I_ij, color='blue')
+plt.xlabel('Feature Index')
+plt.ylabel('Current I_ij')
+plt.title('Current Components for Each Feature')
+plt.axhline(0, color='black', linewidth=0.5)
+plt.grid(True, which='both', linestyle='--', linewidth=0.5)
 
-x = np.arange(n)  # the label locations
-width = 0.35  # the width of the bars
+# Annotate the bar values
+for i, val in enumerate(I_ij):
+    plt.text(i, val + 0.01 if val >= 0 else val - 0.01, f'{val:.2f}', ha='center', va='bottom' if val >= 0 else 'top')
 
-fig, ax1 = plt.subplots()
-
-# Plotting the squared Euclidean distance components
-rects1 = ax1.bar(x, distance_components, width, label='Squared Distance Component', color='blue')
-
-# Adding labels, title, and custom x-axis tick labels, etc.
-ax1.set_xlabel('Feature Index')
-ax1.set_title('Squared Euclidean Distance Components')
-ax1.set_xticks(x)
-ax1.set_xticklabels(labels)
-ax1.legend()
-
-# Adding text annotations to show the squared distance components above the bars
-for i in range(n):
-    ax1.text(x[i], distance_components[i] + 0.5, f'{distance_components[i]}', ha='center', va='bottom')
-
-# Adding overall distance as a text annotation
-ax1.text(n // 2, max(distance_components) + 5, f'Squared Euclidean Distance: {squared_distance}', ha='center', va='bottom', fontsize=12, color='red')
-
-fig.tight_layout()
+# Show total current
+plt.text(len(I_ij) // 2, min(I_ij) - 0.05, f'Total Current: {total_current:.2f}', color='red', fontsize=12, ha='center')
 
 plt.show()
