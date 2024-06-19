@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the size of the crossbar array
+rows, cols = 10, 10
+
+# Define the pulse parameters
+pulse_amplitude = 5  # Volts
+pulse_width = 1e-3  # seconds (1 ms)
+pulse_duration = 10e-3  # seconds (10 ms)
+time_step = 1e-4  # seconds (0.1 ms)
+
+# Define the resistance of the junctions
+junction_resistance = 1000  # Ohms
+
+# Time array
+time = np.arange(0, pulse_duration, time_step)
+
+# Generate the DC pulse
+pulse = np.zeros_like(time)
+pulse[time < pulse_width] = pulse_amplitude
+
+# Initialize the crossbar array with zero currents
+crossbar_currents = np.zeros((rows, cols, len(time)))
+
+# Function to apply the pulse to a specific row and column
+def apply_pulse(row, col, pulse):
+    for t in range(len(time)):
+        crossbar_currents[row, col, t] = pulse[t] / junction_resistance
+
+# Apply the pulse to the entire row 0 and column 0
+for col in range(cols):
+    apply_pulse(0, col, pulse)
+for row in range(rows):
+    apply_pulse(row, 0, pulse)
+
+# Measure the currents through the junctions
+junction_currents = np.sum(crossbar_currents, axis=(0, 1))
+
+# Plot the pulse and junction currents
+fig, ax = plt.subplots(2, 1, figsize=(10, 8))
+
+# Plot the pulse
+ax[0].plot(time, pulse, label='DC Pulse')
+ax[0].set_title('DC Pulse Applied')
+ax[0].set_xlabel('Time (s)')
+ax[0].set_ylabel('Voltage (V)')
+ax[0].legend()
+ax[0].grid(True)
+
+# Plot the junction currents
+ax[1].plot(time, junction_currents, label='Junction Currents')
+ax[1].set_title('Currents through Crossbar Array Junctions')
+ax[1].set_xlabel('Time (s)')
+ax[1].set_ylabel('Current (A)')
+ax[1].legend()
+ax[1].grid(True)
+
+plt.tight_layout()
+plt.show()
