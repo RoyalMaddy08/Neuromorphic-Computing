@@ -1,42 +1,78 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Constants
-Vu = 1  # Constant voltage
-Gu = 1  # Constant conductance
+def reram_output(x, xi, Vu, Gu):
+    return Vu * Gu * np.sum(x * xi)
 
-# Example feature values
-a_x = np.array([6, 1, 4, 4, 8, 4, 6, 3, 5, 8])
-a_xi = np.array([7, 9, 9, 2, 7, 8, 9, 2, 9, 6])
+def euclidean_distance(x, xi):
+    return np.sqrt(np.sum((x - xi) ** 2))
 
-# Voltages proportional to the feature values and their squares
-V_ax = Vu * a_x
-V_ax2 = Vu * a_x**2
-V_aji = Vu * a_xi
-V_aji2 = Vu * a_xi**2
+def squared_euclidean_distance_components(x, xi):
+    return (x - xi) ** 2
 
-# Conductances proportional to the feature values and their squares
-G_ax = Gu * a_x
-G_ax2 = Gu * a_x**2
-G_aji = Gu * a_xi
-G_aji2 = Gu * a_xi**2
+# Example vectors
+x = np.array([6, 1, 4, 4, 8, 4, 6, 3, 5, 8])
+xi = np.array([7, 9, 9, 2, 7, 8, 9, 2, 9, 6])
 
-# Calculate squared Euclidean distance using the crossbar array method
-I_ij = -2 * Vu * Gu * a_x * a_xi + Vu * Gu * a_xi**2
-squared_distance = np.sum(Vu * Gu * (a_x**2 - 2 * a_x * a_xi + a_xi**2))
+# Realistic values
+Vu = 1  # Voltage
+Gu = 1e-6  # Conductance
 
-# Plotting the components of the squared Euclidean distance
+# Calculate distances
+direct_distance = euclidean_distance(x, xi)
+reram_distance = reram_output(x, xi, Vu, Gu)
+
+print("Direct Euclidean Distance:", direct_distance)
+print("ReRAM Array Output:", reram_distance)
+
+# Calculate squared distance components
+squared_distance_components = squared_euclidean_distance_components(x, xi)
+squared_distance = np.sum(squared_distance_components)
+
+# Plot squared distance components
 plt.figure(figsize=(10, 6))
-plt.bar(range(1, 11), Vu * Gu * (a_x**2 - 2 * a_x * a_xi + a_xi**2), color='blue')
+plt.bar(range(1, len(x) + 1), squared_distance_components, color='b', alpha=0.7)
 plt.xlabel('Feature Index')
 plt.ylabel('Squared Distance Component')
 plt.title('Squared Euclidean Distance Components')
-plt.xticks(range(1, 11), [f'Feature {i}' for i in range(1, 11)])
+plt.xticks(range(1, len(x) + 1))
 plt.grid(True)
-plt.text(0.5, 0.9, f'Feature values for input x: {a_x}', transform=plt.gca().transAxes)
-plt.text(0.5, 0.85, f'Feature values for training example x_i: {a_xi}', transform=plt.gca().transAxes)
-plt.text(0.5, 0.8, f'Squared Euclidean Distance: {squared_distance}', transform=plt.gca().transAxes)
+
+# Annotate the plot with vector values and squared distance
+plt.text(len(x) - 3, max(squared_distance_components) * 0.9,
+         f'Feature values for input x: {x}\nFeature values for training example xi: {xi}\nSquared Euclidean Distance: {squared_distance}',
+         bbox=dict(facecolor='white', alpha=0.8))
+
 plt.show()
 
-# Print the squared Euclidean distance
-print(f'Squared Euclidean Distance: {squared_distance}')
+# Generate multiple random vectors
+num_vectors = 100
+dim = 10
+x_random = np.random.rand(num_vectors, dim)
+xi_random = np.random.rand(num_vectors, dim)
+
+# Calculate distances for all vectors
+direct_distances = np.array([euclidean_distance(x_random[i], xi_random[i]) for i in range(num_vectors)])
+reram_distances = np.array([reram_output(x_random[i], xi_random[i], Vu, Gu) for i in range(num_vectors)])
+
+# Plot results
+plt.figure(figsize=(10, 6))
+plt.plot(direct_distances, reram_distances, 'bo', label='ReRAM vs Direct')
+plt.plot([0, np.max(direct_distances)], [0, np.max(reram_distances)], 'r--', label='Ideal')
+plt.xlabel('Direct Euclidean Distance')
+plt.ylabel('ReRAM Array Output')
+plt.title('Comparison of Euclidean Distance Calculations')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Error analysis
+errors = direct_distances - reram_distances
+plt.figure(figsize=(10, 6))
+plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
+plt.xlabel('Error')
+plt.ylabel('Frequency')
+plt.title('Error Distribution between Direct Calculation and ReRAM Output')
+plt.grid(True)
+plt.show()
+
