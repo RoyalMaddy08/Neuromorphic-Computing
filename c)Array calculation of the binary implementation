@@ -1,40 +1,85 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# New feature values for input x and training example x_i to get positive current
+# Functions for continuous implementation
+def continuous_reram_output(x, xi, Vu, Gu):
+    return Vu * Gu * np.sum((1 - x) * xi + x * (1 - xi))
+
+def continuous_euclidean_distance(x, xi):
+    return np.sqrt(np.sum((x - xi) ** 2))
+
+# Example vectors for continuous implementation
 x = np.array([0.5, 0.2, 0.3, 0.4, 0.6, 0.1, 0.3, 0.5, 0.4, 0.2])
-x_i = np.array([0.6, 0.3, 0.4, 0.5, 0.7, 0.2, 0.4, 0.6, 0.5, 0.3])
+xi = np.array([0.6, 0.3, 0.4, 0.5, 0.7, 0.2, 0.4, 0.6, 0.5, 0.3])
 
-# Constants
-V_u = 1
-G_u = 1
+# Realistic values for continuous implementation
+Vu = 1  # Voltage
+Gu = 1  # Conductance
 
-# Calculate the individual currents I_ij
-I_ij = V_u * G_u * ((1 - x) * x_i + x * (1 - x_i))
+# Calculate distances for continuous implementation
+direct_distance = continuous_euclidean_distance(x, xi)
+reram_distance = continuous_reram_output(x, xi, Vu, Gu)
 
-# Calculate the total current
+print("Direct Euclidean Distance (Continuous):", direct_distance)
+print("ReRAM Array Output (Continuous):", reram_distance)
+
+# Generate multiple random continuous vectors
+num_vectors = 100
+dim = 10
+x_random = np.random.rand(num_vectors, dim)
+xi_random = np.random.rand(num_vectors, dim)
+
+# Calculate distances for all vectors (continuous implementation)
+direct_distances = np.array([continuous_euclidean_distance(x_random[i], xi_random[i]) for i in range(num_vectors)])
+reram_distances = np.array([continuous_reram_output(x_random[i], xi_random[i], Vu, Gu) for i in range(num_vectors)])
+
+# Plot results for continuous implementation
+plt.figure(figsize=(10, 6))
+plt.plot(direct_distances, reram_distances, 'bo', label='ReRAM vs Direct')
+plt.plot([0, np.max(direct_distances)], [0, np.max(reram_distances)], 'r--', label='Ideal')
+plt.xlabel('Direct Euclidean Distance')
+plt.ylabel('ReRAM Array Output')
+plt.title('Comparison of Euclidean Distance Calculations (Continuous Implementation)')
+plt.legend()
+plt.show()
+
+# Error analysis for continuous implementation
+errors = direct_distances - reram_distances
+plt.figure(figsize=(10, 6))
+plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
+plt.xlabel('Error')
+plt.ylabel('Frequency')
+plt.title('Error Distribution between Direct Calculation and ReRAM Output (Continuous Implementation)')
+plt.show()
+
+# Calculate the individual currents I_ij for continuous implementation
+I_ij = Vu * Gu * ((1 - x) * xi + x * (1 - xi))
+
+# Calculate the total current for continuous implementation
 total_current = np.sum(I_ij)
 
-# Output the results
-print("Feature values for input x:", x)
-print("Feature values for training example x_i:", x_i)
-print("Individual currents I_ij:", I_ij)
-print("Total current:", total_current)
+# Output the results for continuous implementation
+print("Feature values for input x (Continuous):", x)
+print("Feature values for training example x_i (Continuous):", xi)
+print("Individual currents I_ij (Continuous):", I_ij)
+print("Total current (Continuous):", total_current)
 
-# Plot the individual currents
+# Plot the individual currents for continuous implementation
 plt.figure(figsize=(10, 6))
 plt.bar(range(len(I_ij)), I_ij, color='blue')
 plt.xlabel('Feature Index')
 plt.ylabel('Current I_ij')
-plt.title('Current Components for Each Feature')
+plt.title('Current Components for Each Feature (Continuous Implementation)')
 plt.axhline(0, color='black', linewidth=0.5)
 plt.grid(True, which='both', linestyle='--', linewidth=0.5)
 
-# Annotate the bar values
+# Annotate the bar values for continuous implementation
 for i, val in enumerate(I_ij):
     plt.text(i, val + 0.01 if val >= 0 else val - 0.01, f'{val:.2f}', ha='center', va='bottom' if val >= 0 else 'top')
 
-# Show total current
+# Show total current for continuous implementation
 plt.text(len(I_ij) // 2, min(I_ij) - 0.05, f'Total Current: {total_current:.2f}', color='red', fontsize=12, ha='center')
 
 plt.show()
+
+
