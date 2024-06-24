@@ -1,68 +1,109 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Function to calculate squared Euclidean distance components
+def squared_euclidean_distance(x, xi):
+    return np.sum((x - xi) ** 2)
+
+# Function to model the operational amplifier output
+def op_amp_output(x, xi, Gu, Vu, Rf):
+    D_squared = squared_euclidean_distance(x, xi)
+    V_out = -Rf * Vu * Gu * D_squared
+    return V_out, D_squared
+
+# Function to generate random input and stored vectors
+def generate_vectors(num_vectors, dim):
+    np.random.seed(42)  # For reproducibility
+    x_random = np.random.rand(num_vectors, dim)
+    xi_random = np.random.rand(num_vectors, dim)
+    return x_random, xi_random
+
+# Function to implement the dynamic threshold mechanism
+def dynamic_threshold(V_out, VETH_values):
+    return V_out < VETH_values
+
 # Parameters
-n = 5  # Number of elements
-R = 1e3  # Resistance in ohms
-V_ETH = 5  # Threshold voltage in volts
+num_vectors = 100
+dim = 10
+Gu = 1e-6  # Unit conductance (1 µS)
+Vu = 1  # Unit voltage (1 V)
+Rf = 1e4  # Feedback resistor (10 kΩ)
+VETH_values = np.arange(0, 0.05, 0.005)  # Dynamic threshold voltage range (0 to 50 mV)
 
-# Currents in mA
-I_1j = np.array([1] * n)  # 1 mA for all j
-I_2j = np.array([0.5] * n)  # 0.5 mA for all j
+# Generate random input and stored vectors
+x_random, xi_random = generate_vectors(num_vectors, dim)
 
-# Convert currents to amperes
-I_1j = I_1j * 1e-3  # mA to A
-I_2j = I_2j * 1e-3  # mA to A
+# Calculate distances and operational amplifier outputs
+V_out_values = []
+D_squared_values = []
+for i in range(num_vectors):
+    V_out, D_squared = op_amp_output(x_random[i], xi_random[i], Gu, Vu, Rf)
+    V_out_values.append(V_out)
+    D_squared_values.append(D_squared)
 
-# Sum the currents
-I_1_total = np.sum(I_1j)
-I_2_total = np.sum(I_2j)
+V_out_values = np.array(V_out_values)
+D_squared_values = np.array(D_squared_values)
 
-# Convert total currents to voltages
-V_1_total = I_1_total * R
-V_2_total = I_2_total * R
+# Comparator outputs for different VETH values
+comparator_outputs = [dynamic_threshold(V_out_values, VETH) for VETH in VETH_values]
 
-# Comparator outputs
-V_ED1 = 'High' if V_1_total > V_ETH else 'Low'
-V_ED2 = 'High' if V_2_total > V_ETH else 'Low'
+# Plot results
+plt.figure(figsize=(14, 6))
 
-# Display the results
-print(f"Summed current for first row (I_1_total): {I_1_total * 1e3} mA")
-print(f"Summed current for second row (I_2_total): {I_2_total * 1e3} mA")
-print(f"Total voltage for first row (V_1_total): {V_1_total} V")
-print(f"Total voltage for second row (V_2_total): {V_2_total} V")
-print(f"Comparator output for first row (V_ED1): {V_ED1}")
-print(f"Comparator output for second row (V_ED2): {V_ED2}")
+# Op-Amp Output vs. Traditional Euclidean Distance
+plt.subplot(1, 2, 1)
+plt.plot(D_squared_values, V_out_values, 'ro')
+plt.xlabel('Squared Euclidean Distance')
+plt.ylabel('Op-Amp Output Voltage (V)')
+plt.title('Op-Amp Output vs. Squared Euclidean Distance')
+plt.grid(True)
 
-# Plotting
-labels = ['Row 1', 'Row 2']
-current_values = [I_1_total * 1e3, I_2_total * 1e3]  # in mA
-voltage_values = [V_1_total, V_2_total]  # in V
-comparator_outputs = [V_ED1, V_ED2]
+# Comparator Output vs. VETH
+plt.subplot(1, 2, 2)
+for i, VETH in enumerate(VETH_values):
+    plt.plot(VETH, comparator_outputs[i].sum() / num_vectors, 'bo')
+plt.xlabel('Dynamic Threshold Voltage (VETH) (V)')
+plt.ylabel('Comparator Output (Fraction of vectors below threshold)')
+plt.title('Comparator Output vs. VETH')
+plt.grid(True)
 
-x = np.arange(len(labels))  # the label locations
-width = 0.35  # the width of the bars
-
-fig, ax1 = plt.subplots()
-
-# Plotting the currents
-rects1 = ax1.bar(x - width/2, current_values, width, label='Current (mA)', color='skyblue')
-
-# Adding voltage values
-rects2 = ax1.bar(x + width/2, voltage_values, width, label='Voltage (V)', color='lightgreen')
-
-# Adding labels, title and custom x-axis tick labels, etc.
-ax1.set_xlabel('Row')
-ax1.set_title('Summed Currents and Voltages with Comparator Outputs')
-ax1.set_xticks(x)
-ax1.set_xticklabels(labels)
-ax1.legend()
-
-# Adding comparator outputs as text above the bars
-for i in range(len(labels)):
-    ax1.text(x[i] - width/2, current_values[i] + 1, f'{comparator_outputs[i]}', ha='center', va='bottom')
-    ax1.text(x[i] + width/2, voltage_values[i] + 1, f'{voltage_values[i]:.2f} V', ha='center', va='bottom')
-
-fig.tight_layout()
-
+plt.tight_layout()
 plt.show()
+
+# Error Analysis
+errors = D_squared_values - V_out_values
+plt.figure(figsize=(10, 6))
+plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
+plt.xlabel('Error')
+plt.ylabel('Frequency')
+plt.title('Error Distribution between Squared Euclidean Distance and Op-Amp Output')
+plt.show()
+
+# Statistical Measures
+mean_error = np.mean(errors)
+std_error = np.std(errors)
+print(f"Mean Error: {mean_error}")
+print(f"Standard Deviation of Error: {std_error}")
+
+# Analysis
+# a. Correlation between the operational amplifier output and the actual Euclidean distance
+correlation = np.corrcoef(D_squared_values, V_out_values)[0, 1]
+print(f"Correlation between Op-Amp output and squared Euclidean distance: {correlation}")
+
+# b. Evaluate the effectiveness of the dynamic threshold in detecting similar vectors
+effectiveness = comparator_outputs[-1].sum() / num_vectors  # Using the highest VETH value
+print(f"Effectiveness of the dynamic threshold: {effectiveness}")
+
+# c. Identify discrepancies and explain potential causes
+discrepancies = np.abs(errors)
+mean_discrepancy = np.mean(discrepancies)
+max_discrepancy = np.max(discrepancies)
+print(f"Mean Discrepancy: {mean_discrepancy}")
+print(f"Maximum Discrepancy: {max_discrepancy}")
+
+# d. Assess the accuracy and efficiency of this example detection method
+accuracy = effectiveness
+efficiency = mean_discrepancy
+print(f"Accuracy: {accuracy}")
+print(f"Efficiency (mean discrepancy): {efficiency}")
+
