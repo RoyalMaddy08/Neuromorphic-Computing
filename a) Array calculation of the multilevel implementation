@@ -1,42 +1,86 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Number of features (example with n=3)
-n = 3
+# Function to calculate Euclidean distance directly
+def euclidean_distance(x, xi):
+    return np.sqrt(np.sum((x - xi) ** 2))
 
-# Define the constant voltage V_u
-V_u = 5  # constant voltage
+# Function to calculate ReRAM array output
+def reram_output(x, xi, Vu, Gu):
+    return Vu * Gu * np.sum(x * xi)
 
-# Define the feature values for input x and training example x_i
-# For simplicity, using example values
-a_x = np.array([2, 3, 1])
-a_xi = np.array([4, 1, 2])
+# Function to calculate squared Euclidean distance components
+def squared_euclidean_distance_components(x, xi):
+    return (x - xi) ** 2
 
-# Calculate voltages and conductances for the crossbar array
-V = np.zeros((n, n))
-G = np.zeros((n, n))
+# Example vectors for Euclidean distance and ReRAM output
+x1 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+xi1 = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
 
-for j in range(n):
-    V[j] = [V_u * a_x[j]**2, -V_u * a_x[j], -V_u * a_xi[j], V_u * a_xi[j]**2]
-    G[j] = [1 * a_x[j]**2, 1 * a_x[j], 1 * a_xi[j], 1 * a_xi[j]**2]
+# Realistic values for ReRAM output calculation
+Vu = 1  # Voltage
+Gu = 1e-6  # Conductance
 
-# Calculate the current (I) as element-wise product of V and G
-I = V * G
+# Calculate distances and output
+direct_distance = euclidean_distance(x1, xi1)
+reram_distance = reram_output(x1, xi1, Vu, Gu)
 
-# Sum the currents for each feature to get the squared distance components
-I_sum = np.sum(I, axis=1)
+print("Direct Euclidean Distance:", direct_distance)
+print("ReRAM Array Output:", reram_distance)
 
-# Sum the squared distance components to get the total squared Euclidean distance
-D = np.sum(I_sum)
+# Example vectors for squared Euclidean distance components
+np.random.seed(42)
+x2 = np.random.randint(1, 10, size=10)
+xi2 = np.random.randint(1, 10, size=10)
 
-print(f"Squared Euclidean Distance: {D}")
+# Calculate squared Euclidean distance components
+squared_distances = squared_euclidean_distance_components(x2, xi2)
+total_squared_distance = np.sum(squared_distances)
 
-# Plotting the squared distance components
-plt.figure(figsize=(8, 6))
-plt.bar(range(len(I_sum)), I_sum, color='blue')
+# Plotting squared Euclidean distance components
+plt.figure(figsize=(10, 6))
+plt.bar(range(1, 11), squared_distances, color='blue')
 plt.xlabel('Feature Index')
 plt.ylabel('Squared Distance Component')
 plt.title('Squared Euclidean Distance Components')
-plt.xticks(range(len(I_sum)), [f'Feature {i+1}' for i in range(len(I_sum))])
+plt.xticks(range(1, 11), [f'Feature {i}' for i in range(1, 11)])
+
+# Annotate the plot with vector values and the total distance
+textstr = '\n'.join((
+    f'Feature values for input x: {x2.tolist()}',
+    f'Feature values for training example xi: {xi2.tolist()}',
+    f'Squared Euclidean Distance: {total_squared_distance}'
+))
+props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+plt.gca().text(0.95, 0.95, textstr, transform=plt.gca().transAxes, fontsize=10,
+        verticalalignment='top', horizontalalignment='right', bbox=props)
+
 plt.grid(True)
+plt.show()
+
+# Example of generating random vectors and plotting ReRAM vs Direct Euclidean Distance
+num_vectors = 100
+dim = 10
+x_random = np.random.rand(num_vectors, dim)
+xi_random = np.random.rand(num_vectors, dim)
+
+direct_distances = np.array([euclidean_distance(x_random[i], xi_random[i]) for i in range(num_vectors)])
+reram_distances = np.array([reram_output(x_random[i], xi_random[i], Vu, Gu) for i in range(num_vectors)])
+
+plt.figure(figsize=(10, 6))
+plt.plot(direct_distances, reram_distances, 'bo', label='ReRAM vs Direct')
+plt.plot([0, np.max(direct_distances)], [0, np.max(reram_distances)], 'r--', label='Ideal')
+plt.xlabel('Direct Euclidean Distance')
+plt.ylabel('ReRAM Array Output')
+plt.title('Comparison of Euclidean Distance Calculations')
+plt.legend()
+plt.show()
+
+# Error analysis
+errors = direct_distances - reram_distances
+plt.figure(figsize=(10, 6))
+plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
+plt.xlabel('Error')
+plt.ylabel('Frequency')
+plt.title('Error Distribution between Direct Calculation and ReRAM Output')
 plt.show()
