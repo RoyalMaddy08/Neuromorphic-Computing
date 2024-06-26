@@ -1,86 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Function to calculate Euclidean distance directly
-def euclidean_distance(x, xi):
-    return np.sqrt(np.sum((x - xi) ** 2))
+# Define constants
+V_unit = 1.0  # Unit voltage
+G_unit = 1 / 10000  # Unit conductance (10k ohms resistance)
+proportional_constant = V_unit * G_unit
 
-# Function to calculate ReRAM array output
-def reram_output(x, xi, Vu, Gu):
-    return Vu * Gu * np.sum(x * xi)
+# Define a single set of input voltages for the vector
+voltages = np.array([1.0, 0.8, 0.6, 0.7, 0.2, 0.9, 0.4, 0.3, 0.1, 0.5])
 
-# Function to calculate squared Euclidean distance components
-def squared_euclidean_distance_components(x, xi):
-    return (x - xi) ** 2
+# Compute the squared Euclidean distance
+squared_euclidean_distance = np.sum(voltages ** 2)
+print(f"Squared Euclidean Distance: {squared_euclidean_distance:.2f}")
 
-# Example vectors for Euclidean distance and ReRAM output
-x1 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-xi1 = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+# Calculate the total current
+total_current = proportional_constant * squared_euclidean_distance
+print(f"Total Current: {total_current:.12f} A")
 
-# Realistic values for ReRAM output calculation
-Vu = 1  # Voltage
-Gu = 1e-6  # Conductance
+# Generate the proportionality line
+x_values = np.linspace(0, squared_euclidean_distance + 0.1, 100)
+y_values = proportional_constant * x_values
 
-# Calculate distances and output
-direct_distance = euclidean_distance(x1, xi1)
-reram_distance = reram_output(x1, xi1, Vu, Gu)
-
-print("Direct Euclidean Distance:", direct_distance)
-print("ReRAM Array Output:", reram_distance)
-
-# Example vectors for squared Euclidean distance components
-np.random.seed(42)
-x2 = np.random.randint(1, 10, size=10)
-xi2 = np.random.randint(1, 10, size=10)
-
-# Calculate squared Euclidean distance components
-squared_distances = squared_euclidean_distance_components(x2, xi2)
-total_squared_distance = np.sum(squared_distances)
-
-# Plotting squared Euclidean distance components
+# Plot the relationship
 plt.figure(figsize=(10, 6))
-plt.bar(range(1, 11), squared_distances, color='blue')
-plt.xlabel('Feature Index')
-plt.ylabel('Squared Distance Component')
-plt.title('Squared Euclidean Distance Components')
-plt.xticks(range(1, 11), [f'Feature {i}' for i in range(1, 11)])
-
-# Annotate the plot with vector values and the total distance
-textstr = '\n'.join((
-    f'Feature values for input x: {x2.tolist()}',
-    f'Feature values for training example xi: {xi2.tolist()}',
-    f'Squared Euclidean Distance: {total_squared_distance}'
-))
-props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-plt.gca().text(0.95, 0.95, textstr, transform=plt.gca().transAxes, fontsize=10,
-        verticalalignment='top', horizontalalignment='right', bbox=props)
-
+plt.plot(x_values, y_values, 'b--', label='Proportionality Line')
+plt.scatter([squared_euclidean_distance], [total_current], color='red', label='Data Point')
+plt.title('Proportionality between Squared Euclidean Distance and Total Current')
+plt.xlabel('Squared Euclidean Distance')
+plt.ylabel('Total Current (A)')
 plt.grid(True)
-plt.show()
-
-# Example of generating random vectors and plotting ReRAM vs Direct Euclidean Distance
-num_vectors = 100
-dim = 10
-x_random = np.random.rand(num_vectors, dim)
-xi_random = np.random.rand(num_vectors, dim)
-
-direct_distances = np.array([euclidean_distance(x_random[i], xi_random[i]) for i in range(num_vectors)])
-reram_distances = np.array([reram_output(x_random[i], xi_random[i], Vu, Gu) for i in range(num_vectors)])
-
-plt.figure(figsize=(10, 6))
-plt.plot(direct_distances, reram_distances, 'bo', label='ReRAM vs Direct')
-plt.plot([0, np.max(direct_distances)], [0, np.max(reram_distances)], 'r--', label='Ideal')
-plt.xlabel('Direct Euclidean Distance')
-plt.ylabel('ReRAM Array Output')
-plt.title('Comparison of Euclidean Distance Calculations')
 plt.legend()
 plt.show()
 
-# Error analysis
-errors = direct_distances - reram_distances
-plt.figure(figsize=(10, 6))
-plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
-plt.xlabel('Error')
-plt.ylabel('Frequency')
-plt.title('Error Distribution between Direct Calculation and ReRAM Output')
-plt.show()
+# Print results
+print(f"Proportionality Constant (V_unit * G_unit): {proportional_constant:.12f}")
+print(f"Proportional Squared Distance: {squared_euclidean_distance * proportional_constant:.12f}")
