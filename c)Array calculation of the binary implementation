@@ -1,85 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Functions for continuous implementation
-def continuous_reram_output(x, xi, Vu, Gu):
-    return Vu * Gu * np.sum((1 - x) * xi + x * (1 - xi))
+# Define the squared Euclidean distances
+D = np.linspace(0, 10, 100)  # 100 points between 0 and 10
 
-def continuous_euclidean_distance(x, xi):
-    return np.sqrt(np.sum((x - xi) ** 2))
+# Define the proportionality constant (Vout)
+V_out = 1e-6  # Very small, realistic value
 
-# Example vectors for continuous implementation
-x = np.array([0.5, 0.2, 0.3, 0.4, 0.6, 0.1, 0.3, 0.5, 0.4, 0.2])
-xi = np.array([0.6, 0.3, 0.4, 0.5, 0.7, 0.2, 0.4, 0.6, 0.5, 0.3])
+# Calculate the total current
+I = V_out * D
 
-# Realistic values for continuous implementation
-Vu = 1  # Voltage
-Gu = 1  # Conductance
+# Specific point for annotation (example)
+squared_distance_point = 0.04
+total_current_point = V_out * squared_distance_point
 
-# Calculate distances for continuous implementation
-direct_distance = continuous_euclidean_distance(x, xi)
-reram_distance = continuous_reram_output(x, xi, Vu, Gu)
+# Print the values
+print(f'Squared Euclidean distance: {squared_distance_point:.4f}')
+print(f'Total current (computed): {total_current_point:.2e} A')
+print(f'Proportionality constant (Vout): {V_out:.2e}')
 
-print("Direct Euclidean Distance (Continuous):", direct_distance)
-print("ReRAM Array Output (Continuous):", reram_distance)
-
-# Generate multiple random continuous vectors
-num_vectors = 100
-dim = 10
-x_random = np.random.rand(num_vectors, dim)
-xi_random = np.random.rand(num_vectors, dim)
-
-# Calculate distances for all vectors (continuous implementation)
-direct_distances = np.array([continuous_euclidean_distance(x_random[i], xi_random[i]) for i in range(num_vectors)])
-reram_distances = np.array([continuous_reram_output(x_random[i], xi_random[i], Vu, Gu) for i in range(num_vectors)])
-
-# Plot results for continuous implementation
+# Create the plot
 plt.figure(figsize=(10, 6))
-plt.plot(direct_distances, reram_distances, 'bo', label='ReRAM vs Direct')
-plt.plot([0, np.max(direct_distances)], [0, np.max(reram_distances)], 'r--', label='Ideal')
-plt.xlabel('Direct Euclidean Distance')
-plt.ylabel('ReRAM Array Output')
-plt.title('Comparison of Euclidean Distance Calculations (Continuous Implementation)')
+plt.plot(D, I, label=f'Total Current vs Squared Euclidean Distance', color='b')
+plt.scatter(squared_distance_point, total_current_point, color='r', label='Computed Value')
+
+# Labeling the graph
+plt.title('Relationship between Total Current and Squared Euclidean Distance')
+plt.xlabel('Squared Euclidean Distance')
+plt.ylabel('Total Current (A)')
 plt.legend()
+plt.grid(True)
+
+# Show the plot
 plt.show()
-
-# Error analysis for continuous implementation
-errors = direct_distances - reram_distances
-plt.figure(figsize=(10, 6))
-plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
-plt.xlabel('Error')
-plt.ylabel('Frequency')
-plt.title('Error Distribution between Direct Calculation and ReRAM Output (Continuous Implementation)')
-plt.show()
-
-# Calculate the individual currents I_ij for continuous implementation
-I_ij = Vu * Gu * ((1 - x) * xi + x * (1 - xi))
-
-# Calculate the total current for continuous implementation
-total_current = np.sum(I_ij)
-
-# Output the results for continuous implementation
-print("Feature values for input x (Continuous):", x)
-print("Feature values for training example x_i (Continuous):", xi)
-print("Individual currents I_ij (Continuous):", I_ij)
-print("Total current (Continuous):", total_current)
-
-# Plot the individual currents for continuous implementation
-plt.figure(figsize=(10, 6))
-plt.bar(range(len(I_ij)), I_ij, color='blue')
-plt.xlabel('Feature Index')
-plt.ylabel('Current I_ij')
-plt.title('Current Components for Each Feature (Continuous Implementation)')
-plt.axhline(0, color='black', linewidth=0.5)
-plt.grid(True, which='both', linestyle='--', linewidth=0.5)
-
-# Annotate the bar values for continuous implementation
-for i, val in enumerate(I_ij):
-    plt.text(i, val + 0.01 if val >= 0 else val - 0.01, f'{val:.2f}', ha='center', va='bottom' if val >= 0 else 'top')
-
-# Show total current for continuous implementation
-plt.text(len(I_ij) // 2, min(I_ij) - 0.05, f'Total Current: {total_current:.2f}', color='red', fontsize=12, ha='center')
-
-plt.show()
-
-
