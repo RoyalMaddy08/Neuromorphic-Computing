@@ -1,109 +1,44 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Function to calculate squared Euclidean distance components
-def squared_euclidean_distance(x, xi):
-    return np.sum((x - xi) ** 2)
+# Define input vectors from the given voltages
+x = np.array([1, 0.8, 0.6, 0.7, 0.2])
+xi = np.array([0.9, 0.4, 0.3, 0.1, 0.5])
 
-# Function to model the operational amplifier output
-def op_amp_output(x, xi, Gu, Vu, Rf):
-    D_squared = squared_euclidean_distance(x, xi)
-    V_out = -Rf * Vu * Gu * D_squared
-    return V_out, D_squared
+# Calculate squared Euclidean distance
+squared_diff = (x - xi) ** 2
+squared_euclidean_distance = np.sum(squared_diff)
 
-# Function to generate random input and stored vectors
-def generate_vectors(num_vectors, dim):
-    np.random.seed(42)  # For reproducibility
-    x_random = np.random.rand(num_vectors, dim)
-    xi_random = np.random.rand(num_vectors, dim)
-    return x_random, xi_random
+# Constants (Resistance in ohms, Vunit, and Gunit)
+R = 10e3  # 10k ohms
+Vunit = 1  # Assume 1V as unit voltage
+Gunit = 1 / R  # Conductance unit (S = 1/R)
 
-# Function to implement the dynamic threshold mechanism
-def dynamic_threshold(V_out, VETH_values):
-    return V_out < VETH_values
+# Calculate currents through each resistor (I = V/R)
+currents = (x - xi) / R
 
-# Parameters
-num_vectors = 100
-dim = 10
-Gu = 1e-6  # Unit conductance (1 µS)
-Vu = 1  # Unit voltage (1 V)
-Rf = 1e4  # Feedback resistor (10 kΩ)
-VETH_values = np.arange(0, 0.05, 0.005)  # Dynamic threshold voltage range (0 to 50 mV)
+# Total current (sum of absolute values of individual currents)
+total_current = np.sum(np.abs(currents))
 
-# Generate random input and stored vectors
-x_random, xi_random = generate_vectors(num_vectors, dim)
+# Proportionality constant
+proportionality_constant = Vunit * Gunit
 
-# Calculate distances and operational amplifier outputs
-V_out_values = []
-D_squared_values = []
-for i in range(num_vectors):
-    V_out, D_squared = op_amp_output(x_random[i], xi_random[i], Gu, Vu, Rf)
-    V_out_values.append(V_out)
-    D_squared_values.append(D_squared)
+# Proportional Squared Distance
+proportional_squared_distance = total_current * proportionality_constant
 
-V_out_values = np.array(V_out_values)
-D_squared_values = np.array(D_squared_values)
+# Print results
+print(f"Squared Euclidean Distance: {squared_euclidean_distance}")
+print(f"Total Current: {total_current} A")
+print(f"Proportionality Constant (Vunit * Gunit): {proportionality_constant}")
+print(f"Proportional Squared Distance: {proportional_squared_distance}")
 
-# Comparator outputs for different VETH values
-comparator_outputs = [dynamic_threshold(V_out_values, VETH) for VETH in VETH_values]
-
-# Plot results
-plt.figure(figsize=(14, 6))
-
-# Op-Amp Output vs. Traditional Euclidean Distance
-plt.subplot(1, 2, 1)
-plt.plot(D_squared_values, V_out_values, 'ro')
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.scatter([squared_euclidean_distance], [total_current], color='red', label='Data Point')
+plt.plot([0, squared_euclidean_distance], [0, total_current], 'b--', label='Proportionality Line')
 plt.xlabel('Squared Euclidean Distance')
-plt.ylabel('Op-Amp Output Voltage (V)')
-plt.title('Op-Amp Output vs. Squared Euclidean Distance')
+plt.ylabel('Total Current (A)')
+plt.title('Proportionality between Squared Euclidean Distance and Total Current')
+plt.legend()
 plt.grid(True)
-
-# Comparator Output vs. VETH
-plt.subplot(1, 2, 2)
-for i, VETH in enumerate(VETH_values):
-    plt.plot(VETH, comparator_outputs[i].sum() / num_vectors, 'bo')
-plt.xlabel('Dynamic Threshold Voltage (VETH) (V)')
-plt.ylabel('Comparator Output (Fraction of vectors below threshold)')
-plt.title('Comparator Output vs. VETH')
-plt.grid(True)
-
-plt.tight_layout()
 plt.show()
-
-# Error Analysis
-errors = D_squared_values - V_out_values
-plt.figure(figsize=(10, 6))
-plt.hist(errors, bins=20, edgecolor='k', alpha=0.7)
-plt.xlabel('Error')
-plt.ylabel('Frequency')
-plt.title('Error Distribution between Squared Euclidean Distance and Op-Amp Output')
-plt.show()
-
-# Statistical Measures
-mean_error = np.mean(errors)
-std_error = np.std(errors)
-print(f"Mean Error: {mean_error}")
-print(f"Standard Deviation of Error: {std_error}")
-
-# Analysis
-# a. Correlation between the operational amplifier output and the actual Euclidean distance
-correlation = np.corrcoef(D_squared_values, V_out_values)[0, 1]
-print(f"Correlation between Op-Amp output and squared Euclidean distance: {correlation}")
-
-# b. Evaluate the effectiveness of the dynamic threshold in detecting similar vectors
-effectiveness = comparator_outputs[-1].sum() / num_vectors  # Using the highest VETH value
-print(f"Effectiveness of the dynamic threshold: {effectiveness}")
-
-# c. Identify discrepancies and explain potential causes
-discrepancies = np.abs(errors)
-mean_discrepancy = np.mean(discrepancies)
-max_discrepancy = np.max(discrepancies)
-print(f"Mean Discrepancy: {mean_discrepancy}")
-print(f"Maximum Discrepancy: {max_discrepancy}")
-
-# d. Assess the accuracy and efficiency of this example detection method
-accuracy = effectiveness
-efficiency = mean_discrepancy
-print(f"Accuracy: {accuracy}")
-print(f"Efficiency (mean discrepancy): {efficiency}")
-
